@@ -17,12 +17,13 @@
 
 package com.example.sobes2.overview
 
+import android.app.Application
 import android.util.Log
-import android.widget.Toast
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.sobes2.MyApp
 import com.example.sobes2.NewsData
 import com.example.sobes2.network.MarsApi
 import com.example.sobes2.network.MarsApiFilter
@@ -33,7 +34,7 @@ enum class MarsApiStatus { LOADING, ERROR, DONE }
 /**
  * The [ViewModel] that is attached to the [OverviewFragment].
  */
-class OverviewViewModel : ViewModel() {
+class OverviewViewModel(val app:Application) : ViewModel() {
 
     // The internal MutableLiveData that stores the status of the most recent request
     private val _status = MutableLiveData<MarsApiStatus>()
@@ -60,6 +61,7 @@ class OverviewViewModel : ViewModel() {
      * Call getMarsRealEstateProperties() on init so we can display status immediately.
      */
     init {
+
         getMarsRealEstateProperties(MarsApiFilter.SHOW_ALL)
     }
 
@@ -71,9 +73,10 @@ class OverviewViewModel : ViewModel() {
      */
     private fun getMarsRealEstateProperties(filter: MarsApiFilter) {
         viewModelScope.launch {
+            app as MyApp
             _status.value = MarsApiStatus.LOADING
             try {
-                _properties.value = MarsApi.retrofitService.getProperties("title,description,images").results
+                _properties.value = app.appComponent.retrofit().getProperties("title,description,images").results
                 _status.value = MarsApiStatus.DONE
             } catch (e: Exception) {
                 Log.d("ERROR", e.message?:"")
